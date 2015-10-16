@@ -16,7 +16,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/influxdb/influxdb/client"
+	"github.com/influxdb/influxdb/client/v2"
 	"github.com/influxdb/influxdb/cluster"
 	"github.com/influxdb/influxdb/importer/v8"
 	"github.com/peterh/liner"
@@ -40,7 +40,7 @@ const (
 )
 
 type CommandLine struct {
-	Client           *client.Client
+	Client           client.Client
 	Line             *liner.State
 	Host             string
 	Port             int
@@ -288,7 +288,6 @@ func (c *CommandLine) ParseCommand(cmd string) bool {
 }
 
 func (c *CommandLine) connect(cmd string) error {
-	var cl *client.Client
 	var u url.URL
 
 	// Remove the "connect" keyword if it exists
@@ -305,16 +304,14 @@ func (c *CommandLine) connect(cmd string) error {
 		return e
 	}
 
-	config := client.NewConfig()
-	config.URL = u
-	config.Username = c.Username
-	config.Password = c.Password
-	config.UserAgent = "InfluxDBShell/" + version
-	config.Precision = c.Precision
-	cl, err := client.NewClient(config)
-	if err != nil {
-		return fmt.Errorf("Could not create client %s", err)
+	config := client.Config{
+		URL:       &u,
+		Username:  c.Username,
+		Password:  c.Password,
+		UserAgent: "InfluxDBShell/" + version,
 	}
+	cl := client.NewClient(config)
+
 	c.Client = cl
 	if _, v, e := c.Client.Ping(); e != nil {
 		return fmt.Errorf("Failed to connect to %s\n", c.Client.Addr())
@@ -376,10 +373,8 @@ func (c *CommandLine) SetPrecision(cmd string) {
 	switch cmd {
 	case "h", "m", "s", "ms", "u", "ns":
 		c.Precision = cmd
-		c.Client.SetPrecision(c.Precision)
 	case "rfc3339":
 		c.Precision = ""
-		c.Client.SetPrecision(c.Precision)
 	default:
 		fmt.Printf("Unknown precision %q. Please use rfc3339, h, m, s, ms, u or ns.\n", cmd)
 	}
@@ -492,15 +487,22 @@ func (c *CommandLine) Insert(stmt string) error {
 	if i, r := parseNextIdentifier(point); strings.EqualFold(i, "into") {
 		point = c.parseInto(r)
 	}
-	_, err := c.Client.Write(client.BatchPoints{
-		Points: []client.Point{
-			client.Point{Raw: point},
-		},
+	bp, err := client.NewBatchPoints(client.BatchPointsConfig{
 		Database:         c.Database,
 		RetentionPolicy:  c.RetentionPolicy,
-		Precision:        "n",
+		Precision:        "ns",
 		WriteConsistency: c.WriteConsistency,
 	})
+	if err != nil {
+		return err
+	}
+	pt, err := client.ParsePoint(point)
+	if err != nil {
+		return err
+	}
+	bp.AddPoint(pt)
+	err = c.Client.Write(bp)
+
 	if err != nil {
 		fmt.Printf("ERR: %s\n", err)
 		if c.Database == "" {
