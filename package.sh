@@ -386,13 +386,13 @@ do
            usage 1
         fi
 
-        echo $VERSION | grep -i '[r|c]' 2>&1 >/dev/null
-        if [ $? -ne 1 -a -z "$NIGHTLY_BUILD" ]; then
-            echo
-            echo "$VERSION contains reference to RC - specify RC separately"
-            echo
-            usage 1
-        fi
+        # echo $VERSION | grep -i '[r|c]' 2>&1 >/dev/null
+        # if [ $? -ne 1 -a -z "$NIGHTLY_BUILD" ]; then
+        #     echo
+        #     echo "$VERSION contains reference to RC - specify RC separately"
+        #     echo
+        #     usage 1
+        # fi
         ;;
 
      *) break
