@@ -215,6 +215,7 @@ make_dir_tree() {
     work_dir=$1
     version=$2
 
+    mkdir -p $INSTALL_ROOT_DIR
     mkdir -p $work_dir/$INFLUXDB_SCRIPT_DIR/scripts
     if [ $? -ne 0 ]; then
         echo "Failed to create script directory -- aborting."
@@ -442,7 +443,7 @@ make_dir_tree $TMP_WORK_DIR `full_version $VERSION $RC`
 for b in ${BINS[*]}; do
     cp $GOPATH_INSTALL/bin/$b $TMP_WORK_DIR/$INSTALL_ROOT_DIR/
     if [ $? -ne 0 ]; then
-        echo "Failed to copy binaries to packaging directory -- aborting."
+        echo "Failed to copy binaries to packaging directory ($TMP_WORK_DIR/$INSTALL_ROOT_DIR/) -- aborting."
         cleanup_exit 1
     fi
 done
@@ -450,7 +451,7 @@ echo "${BINS[*]} copied to $TMP_WORK_DIR/$INSTALL_ROOT_DIR/"
 
 cp $INITD_SCRIPT $TMP_WORK_DIR/$INFLUXDB_SCRIPT_DIR/
 if [ $? -ne 0 ]; then
-    echo "Failed to copy init.d script to packaging directory -- aborting."
+    echo "Failed to copy init.d script to packaging directory ($TMP_WORK_DIR/$INFLUXDB_SCRIPT_DIR/) -- aborting."
     cleanup_exit 1
 fi
 echo "$INITD_SCRIPT copied to $TMP_WORK_DIR/$INFLUXDB_SCRIPT_DIR"
