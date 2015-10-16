@@ -215,7 +215,7 @@ make_dir_tree() {
     work_dir=$1
     version=$2
 
-    mkdir -p $INSTALL_ROOT_DIR
+    mkdir -p $work_dir/$INSTALL_ROOT_DIR
     mkdir -p $work_dir/$INFLUXDB_SCRIPT_DIR/scripts
     if [ $? -ne 0 ]; then
         echo "Failed to create script directory -- aborting."
