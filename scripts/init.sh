@@ -34,11 +34,11 @@ GROUP=influxdb
 
 # Daemon name, where is the actual executable
 # If the daemon is not there, then exit.
-DAEMON=/opt/influxdb/influxd
+DAEMON=/usr/bin/influxd
 [ -x $DAEMON ] || exit 5
 
 # Configuration file
-CONFIG=/etc/opt/influxdb/influxdb.conf
+CONFIG=/etc/influxdb/influxdb.conf
 
 # PID file for the daemon
 PIDFILE=/var/run/influxdb/influxd.pid
